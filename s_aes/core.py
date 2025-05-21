@@ -10,8 +10,7 @@ Contains the core logic for S-AES including:
 """
 
 # S-box and Inverse S-box (static substitution tables)
-from utils import int_to_state
-from utils import rotate_nibble
+from .utils import int_to_state,rotate_nibble
 
 
 sbox = [0x9, 0x4, 0xA, 0xB,

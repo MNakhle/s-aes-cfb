@@ -1,16 +1,16 @@
-from core import (
+from .core import (
     sub_nibbles,
     shift_rows,
     mix_columns,
     key_expansion,
     add_round_key
 )
-from utils import (
+from .utils import (
     int_to_state,
     state_to_int
 )
 
-def encrypt(plaintext: int, key: int) -> int:
+def encrypt(plaintext: int, round_keys) -> int:
     """
     Encrypts a 16-bit plaintext using simplified AES with a 16-bit key.
 
@@ -21,7 +21,6 @@ def encrypt(plaintext: int, key: int) -> int:
     Returns:
         int: The ciphertext block (16-bit).
     """
-    round_keys = key_expansion(key)
     state = int_to_state(plaintext)
 
     # Initial round key addition

@@ -1,17 +1,17 @@
-from core import (
+from .core import (
     key_expansion,
     inv_sub_nibbles,
     add_round_key,
     inv_mix_columns,
     shift_rows
 )
-from utils import (
+from .utils import (
     int_to_state,
     state_to_int,
 )
 
 
-def decrypt(ciphertext: int, key: int) -> int:
+def decrypt(ciphertext: int, round_keys) -> int:
     """
     Decrypts a 16-bit ciphertext using simplified AES with a 16-bit key.
 
@@ -22,7 +22,6 @@ def decrypt(ciphertext: int, key: int) -> int:
     Returns:
         int: The decrypted plaintext block (16-bit).
     """
-    round_keys = key_expansion(key)
     state = int_to_state(ciphertext)
 
     # Inverse Final Round
