@@ -28,25 +28,41 @@ class Cryptanalyst:
             'o': 0.07, 'i': 0.06, 'n': 0.06, 's': 0.06
         }
 
-    def brute_force(self, ciphertext: bytes, known_plaintext: bytes, iv: int = 0, max_workers: int = 4) -> Optional[int]:
+    def brute_force(self, ciphertext: bytes, known_plaintexts: List[bytes], iv: int = 0, max_workers: int = 4) -> Optional[int]:
         """
-        Parallel brute force attack with known plaintext.
+        Parallel brute force attack that checks multiple plaintext candidates per key.
+        
+        Args:
+            ciphertext: Encrypted data
+            known_plaintexts: List of possible plaintext snippets to look for
+            iv: Initialization vector
+            max_workers: Number of threads to use
+            
+        Returns:
+            Found key or None if no match found
         """
         def test_key(key: int) -> Optional[int]:
             try:
                 decrypted = self.decrypt(ciphertext, key, iv)
-                return key if known_plaintext in decrypted else None
+                for plaintext in known_plaintexts:
+                    if plaintext in decrypted:
+                        return key
+                return None
             except Exception:
                 return None
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Create futures for all keys
             futures = {executor.submit(test_key, key): key for key in range(0x10000)}
-
+            
+            # Process results as they complete
             for future in as_completed(futures):
                 result = future.result()
                 if result is not None:
+                    # Shutdown immediately if we find a match
                     executor.shutdown(wait=False)
                     return result
+        
         return None
 
     def frequency_analysis(self, ciphertext: bytes, iv: int = 0, top_n: int = 5) -> List[Tuple[int, float]]:
@@ -83,28 +99,44 @@ class Cryptanalyst:
         # Fallback to brute force
         common_plaintexts = ['Hello', 'Hi' ,'Secret', 'Data', 'Message', 'The', 'This is', 'File']
 
-        print(f"\nstarting brute force for common text\n(estimated time for each : {self.estimate_attack_time(ciphertext)})\n")
-        for plaintext in common_plaintexts:
-            print(f"Trying known plaintext: {plaintext}...")
-            key = self.brute_force(ciphertext, plaintext, iv)
-            if key is not None:
-                return key
-
+        print(f"\nstarting brute force for common text\n(estimated time: {self.estimate_attack_time(ciphertext)})\n")
+        key = self.brute_force(ciphertext, common_plaintexts, iv)
+        if key is not None:
+            return key
 
         # Fallback to user input
-        while True:
-            print("\nBrute-force failed. Would you like to try your own plaintext guess?")
-            user_input = input("Enter a known plaintext (or press ENTER to skip): ").strip()
-            if not user_input:
-                break
-            key = self.brute_force(ciphertext, user_input, iv)
-            if key is not None:
-                print(f"Key recovered using user-provided plaintext: {user_input}")
-                return key
-            else:
-                print("No key found with that plaintext. Try another one.")
+        key = self.interactive_brute_force(ciphertext , iv)
+        if key is not None:
+            return key
 
         return None
+    
+
+    def interactive_brute_force(self, ciphertext: bytes, iv: int = 0) :
+        while True:
+            print("\nBrute-force failed. Enter known plaintexts to try (comma separated):")
+            print("Example: Hello,Secret,My Data 123")
+            user_input = input("> ").strip()
+            
+            if not user_input:
+                break
+                
+            # Process user input
+            user_plaintexts = [pt.strip() for pt in user_input.split(',') if pt.strip()]
+            
+            if not user_plaintexts:
+                print("No valid plaintexts entered. Try again.")
+                continue
+                
+            print(f"\nTrying {len(user_plaintexts)} plaintexts in single brute-force run...")
+            key = self.brute_force(ciphertext, user_plaintexts, iv)
+            
+            if key is not None:
+                return key
+            else:
+                print("\nNo key found with these plaintexts.")
+    
+
 
     def benchmark_decrypt(self, ciphertext: bytes, iv: int = 0, samples: int = 100) -> float:
         """

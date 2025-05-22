@@ -5,19 +5,21 @@ from s_aes.utils import blocks_to_hex_string
 def main():
     key = 0x1A2B
     iv = 0xAAAA
-    plaintext = "Okay you got me"
-    print(f"PlainText: {plaintext}")
-
+    plaintext = "Okay you got me!"
+    
     # Encrypt
     ciphertext_blocks = cfb_encrypt(plaintext, key, iv)
-    print(f"cypher_hex : {blocks_to_hex_string(ciphertext_blocks)}")
 
     # Decrypt
     decrypted_text = cfb_decrypt(ciphertext_blocks, key, iv)
-    print(f"decrypted_text: {decrypted_text}")
+
+    print(f"PlainText       : {plaintext}")
+    print(f"Ciphertext (hex): {blocks_to_hex_string(ciphertext_blocks)}")
+    print(f"Decrypted Text  : {decrypted_text}")
 
     #-------------------------------------------Cryptanalysis------------------------------------------------- 
     print("\n------------Cryptanalysis------------\n")   
+
 
     analyst = Cryptanalyst(decrypt_fn=cfb_decrypt, block_size=8)
 
@@ -25,11 +27,11 @@ def main():
     recovered_key = analyst.optimized_attack(ciphertext_blocks,iv)
 
     if recovered_key is not None:
-        print(f"Recovered key: {hex(recovered_key)}")
+        print(f"\n✅ Recovered key: {hex(recovered_key)}")
         decrypted = cfb_decrypt(ciphertext_blocks, recovered_key,iv)
-        print(f"Decrypted message: {decrypted}")
+        print(f"🔓 Decrypted message: {decrypted}")
     else:
-        print("Failed to recover key.")
+        print("\n❌ Failed to recover key.")
 
 
 if __name__ == "__main__":
