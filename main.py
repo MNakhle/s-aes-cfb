@@ -1,32 +1,35 @@
+from crypt_analysis.Cryptanalyst import Cryptanalyst
 from s_aes import cfb_encrypt, cfb_decrypt, blocks_to_text, text_to_blocks
-from crypt_analysis.bruteforce_kpa import brute_force_cfb
 from s_aes.utils import blocks_to_hex_string
 
 def main():
     key = 0x1A2B
     iv = 0xAAAA
-    plaintext = "You Got It :)"
-    print(f"PlainText: {plaintext} | block form: {text_to_blocks(plaintext)}")
+    plaintext = "Okay you got me"
+    print(f"PlainText: {plaintext}")
 
     # Encrypt
     ciphertext_blocks = cfb_encrypt(plaintext, key, iv)
-    print(f"ciphertext_blocks : {ciphertext_blocks} | cypher_hex : {blocks_to_hex_string(ciphertext_blocks)}")
+    print(f"cypher_hex : {blocks_to_hex_string(ciphertext_blocks)}")
 
     # Decrypt
-    decrypted_blocks = cfb_decrypt(ciphertext_blocks, key, iv)
-    decrypted_text = blocks_to_text(decrypted_blocks)
-    print(f"decrypted_text: {decrypted_text} | decrypted_blocks: {decrypted_blocks}")
+    decrypted_text = cfb_decrypt(ciphertext_blocks, key, iv)
+    print(f"decrypted_text: {decrypted_text}")
 
-#----------------------------------------------------------------------------------------
+    #-------------------------------------------Cryptanalysis------------------------------------------------- 
+    print("\n------------Cryptanalysis------------\n")   
 
-    plaintext = "Hello!"
-    print(f"plaintext: {plaintext}")
-    ciphertext_blocks = cfb_encrypt(plaintext, key, iv)
-    print(f"ciphertext_blocks: {ciphertext_blocks}")
+    analyst = Cryptanalyst(decrypt_fn=cfb_decrypt, block_size=8)
 
-    # Simulate attack with ciphertext, IV, and known plaintext
-    print("\nStarting brute-force...")
-    brute_force_cfb(ciphertext_blocks, "Hello!", iv)
+    # Try to recover the key
+    recovered_key = analyst.optimized_attack(ciphertext_blocks,iv)
+
+    if recovered_key is not None:
+        print(f"Recovered key: {hex(recovered_key)}")
+        decrypted = cfb_decrypt(ciphertext_blocks, recovered_key,iv)
+        print(f"Decrypted message: {decrypted}")
+    else:
+        print("Failed to recover key.")
 
 
 if __name__ == "__main__":

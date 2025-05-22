@@ -5,7 +5,7 @@ for Simplified AES (S-AES).
 
 from .core import key_expansion
 from .encrypt import encrypt
-from .utils import int_to_state, state_to_int, text_to_blocks
+from .utils import blocks_to_text, int_to_state, state_to_int, text_to_blocks
 
 
 def cfb_encrypt(text, key, iv):
@@ -72,4 +72,4 @@ def cfb_decrypt(ciphertext_blocks, key, iv):
         # Update previous block
         prev = ciphertext
 
-    return plaintext_blocks
+    return blocks_to_text(plaintext_blocks)
