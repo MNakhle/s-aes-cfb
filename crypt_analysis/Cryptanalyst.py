@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import math
 import time
 
+
 class Cryptanalyst:
     """
     Comprehensive cryptanalysis toolkit for S-DES and S-AES cipher implementations.
@@ -78,7 +79,7 @@ class Cryptanalyst:
                 score = sum(freq.get(c, 0) * self.english_freq.get(c, 0) for c in self.english_freq)
                 normalized_score = score / len(decrypted) if decrypted else 0
                 results.append((f"0x{key:04x}", normalized_score,decrypted))
-            except Exception:
+            except Exception as e:
                 continue
 
         return sorted(results, key=lambda x: -x[1])[:top_n]

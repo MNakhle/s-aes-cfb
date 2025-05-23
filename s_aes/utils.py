@@ -84,7 +84,7 @@ def text_to_blocks(text):
     return blocks
 
 
-def blocks_to_text(blocks):
+def blocks_to_text(blocks, force_text=False):
     """
     Converts a list of 16-bit integer blocks back into the original UTF-8 string.
 
@@ -101,7 +101,16 @@ def blocks_to_text(blocks):
     for block in blocks:
         bytes_out.append((block >> 8) & 0xFF)
         bytes_out.append(block & 0xFF)
-    return bytes_out.rstrip(b'\x00').decode('utf-8')  # remove padding
+    
+    # Remove padding while preserving possible binary data
+    clean_bytes = bytes_out.rstrip(b'\x00')
+    
+    try:
+        return clean_bytes.decode('utf-8')
+    except UnicodeDecodeError:
+        if force_text:
+            raise
+        return clean_bytes 
 
 
 def blocks_to_hex_string(blocks: list[int]) -> str:

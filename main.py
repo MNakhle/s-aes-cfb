@@ -1,6 +1,10 @@
+import string
 from crypt_analysis.Cryptanalyst import Cryptanalyst
-from s_aes import cfb_encrypt, cfb_decrypt, blocks_to_text, text_to_blocks
-from s_aes.utils import blocks_to_hex_string
+from s_aes import cfb_encrypt, cfb_decrypt, blocks_to_text, decrypt, text_to_blocks
+from s_aes.cbc import cbc_decrypt, cbc_encrypt
+from s_aes.core import key_expansion
+from s_aes.utils import blocks_to_hex_string, hex_to_blocks
+
 
 def main():
     key = 0x1A2B
@@ -30,6 +34,29 @@ def main():
         print(f"\n✅ Recovered key: {hex(recovered_key)}")
         decrypted = cfb_decrypt(ciphertext_blocks, recovered_key,iv)
         print(f"🔓 Decrypted message: {decrypted}")
+    else:
+        print("\n❌ Failed to recover key.")
+
+    #----------------------------------------Cryptanalysis-Foreign----------------------------------------------
+
+    print("\n------------Cryptanalysis-Foreign------------\n")   
+
+    analyst = Cryptanalyst(decrypt_fn=cbc_decrypt, block_size=8)
+
+    iv = 0x20be
+    cypherhex = "20bec925a282f7d79adfa09f8ad719b9cb98e39de4240b15f9e0a908fca7ee1b4a5ed739c729b0ff"
+    cypher_blocks = hex_to_blocks(cypherhex)
+
+    print(f"CypherText (hex)    : {cypherhex}")
+    print(f"CypherText (blocks) : {cypher_blocks}")
+
+    recovered_key = analyst.optimized_attack(cypher_blocks)
+
+    if recovered_key is not None:
+        print(f"\n✅ Recovered key: {hex(recovered_key)}")
+        decrypted = cbc_decrypt(cypher_blocks, recovered_key)
+        print(f"🔓 Decrypted message: {decrypted}")
+
     else:
         print("\n❌ Failed to recover key.")
 
