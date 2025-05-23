@@ -44,7 +44,8 @@ class Cryptanalyst:
         """
         def test_key(key: int) -> Optional[int]:
             try:
-                decrypted = self.decrypt(ciphertext, key, iv)
+                if iv is not None : decrypted = self.decrypt(ciphertext, key, iv).lower()
+                else : decrypted = self.decrypt(ciphertext, key).lower()     
                 for plaintext in known_plaintexts:
                     if plaintext in decrypted:
                         return key
@@ -66,7 +67,7 @@ class Cryptanalyst:
         
         return None
 
-    def frequency_analysis(self, ciphertext: bytes, iv: int = 0, top_n: int = 5) -> List[Tuple[int, float]]:
+    def frequency_analysis(self, ciphertext: bytes, iv: int = None, top_n: int = 5) -> List[Tuple[int, float]]:
         """
         Statistical frequency analysis attack for text.
         """
@@ -74,7 +75,8 @@ class Cryptanalyst:
 
         for key in range(0x10000):
             try:
-                decrypted = self.decrypt(ciphertext, key, iv).lower()
+                if iv is not None : decrypted = self.decrypt(ciphertext, key, iv).lower()
+                else : decrypted = self.decrypt(ciphertext, key).lower()
                 freq = Counter(decrypted)
                 score = sum(freq.get(c, 0) * self.english_freq.get(c, 0) for c in self.english_freq)
                 normalized_score = score / len(decrypted) if decrypted else 0
@@ -84,7 +86,7 @@ class Cryptanalyst:
 
         return sorted(results, key=lambda x: -x[1])[:top_n]
 
-    def optimized_attack(self, ciphertext: bytes, iv: int = 0):
+    def optimized_attack(self, ciphertext: bytes, iv: int = None):
         """
         Smart attack that automatically selects best strategy.
         """
@@ -113,7 +115,7 @@ class Cryptanalyst:
         return None
     
 
-    def interactive_brute_force(self, ciphertext: bytes, iv: int = 0) :
+    def interactive_brute_force(self, ciphertext: bytes, iv: int = None) :
         while True:
             print("\nBrute-force failed. Enter known plaintexts to try (comma separated):")
             print("Example: Hello,Secret,My Data 123")

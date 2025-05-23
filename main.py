@@ -1,4 +1,5 @@
 import string
+from cbc_project.saes_cbc import s_aes_cbc_decrypt
 from crypt_analysis.Cryptanalyst import Cryptanalyst
 from s_aes import cfb_encrypt, cfb_decrypt, blocks_to_text, decrypt, text_to_blocks
 from s_aes.cbc import cbc_decrypt, cbc_encrypt
@@ -41,11 +42,10 @@ def main():
 
     print("\n------------Cryptanalysis-Foreign------------\n")   
 
-    analyst = Cryptanalyst(decrypt_fn=cbc_decrypt, block_size=8)
+    analyst = Cryptanalyst(decrypt_fn=s_aes_cbc_decrypt, block_size=8)
 
-    iv = 0x20be
     cypherhex = "20bec925a282f7d79adfa09f8ad719b9cb98e39de4240b15f9e0a908fca7ee1b4a5ed739c729b0ff"
-    cypher_blocks = hex_to_blocks(cypherhex)
+    cypher_blocks = bytes.fromhex(cypherhex)
 
     print(f"CypherText (hex)    : {cypherhex}")
     print(f"CypherText (blocks) : {cypher_blocks}")
@@ -54,7 +54,7 @@ def main():
 
     if recovered_key is not None:
         print(f"\n✅ Recovered key: {hex(recovered_key)}")
-        decrypted = cbc_decrypt(cypher_blocks, recovered_key)
+        decrypted = s_aes_cbc_decrypt(cypher_blocks, recovered_key)
         print(f"🔓 Decrypted message: {decrypted}")
 
     else:
